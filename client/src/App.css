@@ -61,7 +61,8 @@ body {
 
 .chatContainer .messages {
   flex: 80%;
-  width: 100%
+  width: 100%;
+  overflow-y: auto;
 }
 
 .chatContainer .messageInputs {

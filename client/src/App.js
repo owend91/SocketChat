@@ -1,11 +1,12 @@
 import './App.css';
 import io from 'socket.io-client'
-import React, {useEffect, useState} from "react"
+import React, {useRef, useEffect, useState} from "react"
 
 let socket;
 const CONNECTION_PORT='http://localhost:3001/'
 
 function App() {
+  const messageBottom = useRef(null);
   const [loggedIn, setLoggedIn] = useState(false)
   const [room, setRoom] = useState("Class of 2020")
   const [userName, setUserName] = useState("")
@@ -19,10 +20,8 @@ function App() {
 
   useEffect(() => {
     socket.on("receive_message", data => {
-      console.log(`received message: `, data)
-      console.log('Before: ', messageList)
       setMessageList([...messageList, data])
-      console.log('After: ', messageList)
+      messageBottom.current.scrollIntoView({ behavior: 'smooth' });
 
     })
   })
@@ -55,7 +54,14 @@ function App() {
     setMessage('')
     await socket.emit('send_message', msg);
     setMessageList([...messageList, msg.content])
+    messageBottom.current.scrollIntoView({ behavior: 'smooth' });
 
+  }
+
+  function handleKeyPress(event) {
+    if(event.key === 'Enter'){
+      sendMessage()
+    }
   }
 
   return (
@@ -85,9 +91,10 @@ function App() {
               )
             })
           }
+          <div className="messageEnd" ref={messageBottom}></div>
         </div>
         <div className='messageInputs'>
-          <input type='text' placeholder='Message...' onChange={handleMessageChange} value={message}/>
+          <input type='text' placeholder='Message...' onChange={handleMessageChange} onKeyPress={handleKeyPress} value={message}/>
           <button onClick={sendMessage}>Send</button>
 
 
