@@ -2,29 +2,45 @@ import './App.css';
 import io from 'socket.io-client'
 import React, {useRef, useEffect, useState} from "react"
 
+
 let socket;
 const CONNECTION_PORT='http://localhost:3001/'
 
 function App() {
   const messageBottom = useRef(null);
   const [loggedIn, setLoggedIn] = useState(false)
-  const [room, setRoom] = useState("Class of 2020")
+  const [room, setRoom] = useState("")
+  const [connectedRoom, setConnectedRoom] = useState("")
+
   const [userName, setUserName] = useState("")
 
   const [message, setMessage] = useState("")
   const [messageList, setMessageList] = useState([])
 
   useEffect(() => {
+    console.log('connecting...')
     socket = io(CONNECTION_PORT)
   }, [CONNECTION_PORT])
 
-  useEffect(() => {
-    socket.on("receive_message", data => {
-      setMessageList([...messageList, data])
+  useEffect( () => {
+    // socket.on("receive_message", data => {
+    //   setMessageList([...messageList, data])
+    //   messageBottom.current.scrollIntoView({ behavior: 'smooth' });
+    // })
+    console.log('use effect...')
+    socket.on("populate_chats", data => {
+      console.log('room data: ', data);
+      setMessageList(data)
       messageBottom.current.scrollIntoView({ behavior: 'smooth' });
+      console.log('messages: ', messageList)
 
     })
-  })
+  }, [])
+
+  // useEffect(() => {
+  //   console.log('populating room')
+    
+  // }, [connectedRoom])
 
   function handeNameChange(event) {
     setUserName(event.target.value)
@@ -38,9 +54,11 @@ function App() {
     setMessage(event.target.value)
   }
 
-  const connectToRoom = () => {
+  const connectToRoom =  async () => {
     setLoggedIn(true)
-    socket.emit('join_room', room);
+    await socket.emit('join_room', room);
+    setConnectedRoom(room)
+
   }
 
   const sendMessage = async () => {
@@ -80,11 +98,13 @@ function App() {
         <div className='messages'>
           {
             messageList.map((val, key) => {
+              console.log('val: ', val)
               return (
                 <div className='messageContainer' id={val.author === userName ? "You" : "Other"}>
                   <h3>{val.author} </h3>
+                  
                   <div className='messageBox'>
-                     {val.message}
+                     <p>{val.message}</p>
                   </div>
                 </div>
                 
